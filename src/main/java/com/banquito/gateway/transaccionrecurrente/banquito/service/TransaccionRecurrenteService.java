@@ -47,7 +47,7 @@ public class TransaccionRecurrenteService {
 
     @Transactional
     public TransaccionRecurrente crear(TransaccionRecurrente transaccion) {
-        log.info("Creando nueva transacción recurrente");
+        log.info("Se ha creado la transacción");
         validarTransaccion(transaccion);
         transaccion.setCodigo(UUID.randomUUID().toString().substring(0, 10));
         transaccion.setEstado("ACT");

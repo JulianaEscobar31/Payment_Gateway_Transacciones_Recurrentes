@@ -6,8 +6,6 @@ import java.time.LocalDate;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -19,44 +17,29 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TransaccionRecurrenteDTO {
     
+    @Size(max = 10, message = "El código debe tener máximo 10 caracteres")
     private String codigo;
-
-    @NotBlank(message = "El tipo es requerido")
-    @Pattern(regexp = "POR|FIJ", message = "El tipo debe ser POR o FIJ")
-    private String tipo;
-
-    @NotNull(message = "El monto base es requerido")
-    @DecimalMin(value = "0.0", message = "El monto base no puede ser negativo")
-    @DecimalMax(value = "999999999.9999", message = "El monto base excede el límite permitido")
-    private BigDecimal montoBase;
-
-    @NotNull(message = "El número de transacciones base es requerido")
-    @Min(value = 0, message = "El número de transacciones base no puede ser negativo")
-    private Integer transaccionesBase;
-
-    @NotNull(message = "El campo maneja segmentos es requerido")
-    private Boolean manejaSegmentos;
 
     @NotNull(message = "El monto es requerido")
     @DecimalMin(value = "0.01", message = "El monto debe ser mayor a 0")
+    @DecimalMax(value = "999999999.99", message = "El monto excede el límite permitido")
     private BigDecimal monto;
 
     @NotBlank(message = "La marca es requerida")
     @Size(min = 1, max = 4, message = "La marca debe tener entre 1 y 4 caracteres")
     private String marca;
 
-    @Pattern(regexp = "ACT|INA|ELI", message = "El estado debe ser ACT, INA o ELI")
+    @Pattern(regexp = "ACT|INA", message = "El estado debe ser ACT o INA")
     private String estado;
 
     @NotNull(message = "La fecha de inicio es requerida")
     private LocalDate fechaInicio;
 
-    @Future(message = "La fecha fin debe ser futura")
     private LocalDate fechaFin;
 
     @NotNull(message = "El día de pago es requerido")
-    @Min(value = 1, message = "El día de pago debe ser entre 1 y 31")
-    @Max(value = 31, message = "El día de pago debe ser entre 1 y 31")
+    @DecimalMin(value = "1", message = "El día debe ser mayor a 0")
+    @DecimalMax(value = "31", message = "El día no puede ser mayor a 31")
     private Integer diaMesPago;
 
     @NotBlank(message = "El SWIFT del banco es requerido")
@@ -81,4 +64,5 @@ public class TransaccionRecurrenteDTO {
     @NotNull(message = "La fecha de caducidad es requerida")
     @Future(message = "La fecha de caducidad debe ser futura")
     private LocalDate fechaCaducidad;
+
 } 
