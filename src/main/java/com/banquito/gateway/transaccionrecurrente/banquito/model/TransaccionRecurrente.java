@@ -5,8 +5,6 @@ import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -15,7 +13,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "transaccion_recurrente")
+@Table(name = "GTW_TRANSACCION_RECURRENTE")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,21 +21,8 @@ import lombok.ToString;
 public class TransaccionRecurrente {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "codigo", nullable = false)
+    @Column(name = "COD_TRANSACCION_RECURRENTE", length = 10, nullable = false)
     private String codigo;
-
-    @Column(name = "tipo", nullable = false, length = 3)
-    private String tipo;
-
-    @Column(name = "monto_base", nullable = false, precision = 18, scale = 4)
-    private BigDecimal montoBase;
-
-    @Column(name = "transacciones_base", nullable = false)
-    private Integer transaccionesBase;
-
-    @Column(name = "maneja_segmentos", nullable = false)
-    private Boolean manejaSegmentos;
 
     @Column(name = "MONTO", precision = 20, scale = 2, nullable = false)
     private BigDecimal monto;
