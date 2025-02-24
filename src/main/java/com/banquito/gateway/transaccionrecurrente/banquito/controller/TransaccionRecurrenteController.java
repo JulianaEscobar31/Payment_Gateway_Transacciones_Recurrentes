@@ -30,7 +30,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/v1/transacciones-recurrentes")
-@Tag(name = "Transacciones Recurrentes", description = "API para gestionar transacciones recurrentes")
+@Tag(name = "Transacciones Recurrentes", description = "API para gestionar transacciones recurrentes de pagos automáticos")
 public class TransaccionRecurrenteController {
     
     private final Logger log = LoggerFactory.getLogger(TransaccionRecurrenteController.class);
@@ -43,8 +43,14 @@ public class TransaccionRecurrenteController {
     }
 
     @GetMapping
-    @Operation(summary = "Obtener todas las transacciones recurrentes")
-    @ApiResponse(responseCode = "200", description = "Lista de transacciones recurrentes obtenida exitosamente")
+    @Operation(
+        summary = "Listar todas las transacciones recurrentes",
+        description = "Obtiene un listado completo de todas las transacciones recurrentes registradas en el sistema"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de transacciones recurrentes obtenida exitosamente"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerTodas() {
         log.info("Obteniendo todas las transacciones recurrentes");
         return ResponseEntity.ok(
@@ -55,23 +61,34 @@ public class TransaccionRecurrenteController {
     }
 
     @GetMapping("/{codigo}")
-    @Operation(summary = "Obtener una transacción recurrente por su código")
+    @Operation(
+        summary = "Buscar transacción recurrente por código",
+        description = "Obtiene una transacción recurrente específica utilizando su código único"
+    )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Transacción recurrente encontrada"),
-        @ApiResponse(responseCode = "404", description = "Transacción recurrente no encontrada")
+        @ApiResponse(responseCode = "200", description = "Transacción recurrente encontrada exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Transacción recurrente no encontrada"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     public ResponseEntity<TransaccionRecurrenteDTO> obtenerPorCodigo(
-            @Parameter(description = "Código de la transacción recurrente") 
+            @Parameter(description = "Código único de la transacción recurrente", example = "TR-001", required = true) 
             @PathVariable String codigo) {
         log.info("Obteniendo transacción recurrente con código: {}", codigo);
         return ResponseEntity.ok(mapper.toDTO(this.service.obtenerPorCodigo(codigo)));
     }
 
     @GetMapping("/tarjeta/{tarjeta}")
-    @Operation(summary = "Obtener transacciones recurrentes por número de tarjeta")
-    @ApiResponse(responseCode = "200", description = "Lista de transacciones recurrentes obtenida exitosamente")
+    @Operation(
+        summary = "Buscar transacciones por número de tarjeta",
+        description = "Obtiene todas las transacciones recurrentes asociadas a una tarjeta específica"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de transacciones obtenida exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Número de tarjeta inválido"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerPorTarjeta(
-            @Parameter(description = "Número de tarjeta") 
+            @Parameter(description = "Número de tarjeta (16 dígitos)", example = "4532123456789012", required = true) 
             @PathVariable Long tarjeta) {
         log.info("Obteniendo transacciones recurrentes para la tarjeta: {}", tarjeta);
         return ResponseEntity.ok(
@@ -82,10 +99,17 @@ public class TransaccionRecurrenteController {
     }
 
     @GetMapping("/cuenta/{cuentaIban}")
-    @Operation(summary = "Obtener transacciones recurrentes por cuenta IBAN")
-    @ApiResponse(responseCode = "200", description = "Lista de transacciones recurrentes obtenida exitosamente")
+    @Operation(
+        summary = "Buscar transacciones por cuenta IBAN",
+        description = "Obtiene todas las transacciones recurrentes asociadas a una cuenta IBAN específica"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de transacciones obtenida exitosamente"),
+        @ApiResponse(responseCode = "400", description = "IBAN inválido"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerPorCuentaIban(
-            @Parameter(description = "Número de cuenta IBAN") 
+            @Parameter(description = "Número de cuenta en formato IBAN", example = "EC012345678901234567", required = true) 
             @PathVariable String cuentaIban) {
         log.info("Obteniendo transacciones recurrentes para la cuenta IBAN: {}", cuentaIban);
         return ResponseEntity.ok(
@@ -96,31 +120,39 @@ public class TransaccionRecurrenteController {
     }
 
     @PostMapping
-    @Operation(summary = "Crear una nueva transacción recurrente")
+    @Operation(
+        summary = "Crear nueva transacción recurrente",
+        description = "Registra una nueva transacción recurrente en el sistema"
+    )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Transacción recurrente creada exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Datos de transacción recurrente inválidos")
+        @ApiResponse(responseCode = "201", description = "Transacción recurrente creada exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de transacción inválidos"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     public ResponseEntity<TransaccionRecurrenteDTO> crear(
-            @Parameter(description = "Datos de la transacción recurrente") 
+            @Parameter(description = "Datos de la nueva transacción recurrente", required = true) 
             @Valid @RequestBody TransaccionRecurrenteDTO transaccionDTO) {
         log.info("Creando nueva transacción recurrente");
-        return ResponseEntity.ok(
+        return ResponseEntity.status(201).body(
             mapper.toDTO(this.service.crear(mapper.toModel(transaccionDTO)))
         );
     }
 
     @PutMapping("/{codigo}")
-    @Operation(summary = "Actualizar una transacción recurrente existente")
+    @Operation(
+        summary = "Actualizar transacción recurrente",
+        description = "Actualiza los datos de una transacción recurrente existente"
+    )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Transacción recurrente actualizada exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Datos de transacción recurrente inválidos"),
-        @ApiResponse(responseCode = "404", description = "Transacción recurrente no encontrada")
+        @ApiResponse(responseCode = "200", description = "Transacción actualizada exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de actualización inválidos"),
+        @ApiResponse(responseCode = "404", description = "Transacción recurrente no encontrada"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     public ResponseEntity<TransaccionRecurrenteDTO> actualizar(
-            @Parameter(description = "Código de la transacción recurrente") 
+            @Parameter(description = "Código de la transacción a actualizar", example = "TR-001", required = true) 
             @PathVariable String codigo,
-            @Parameter(description = "Datos actualizados de la transacción recurrente") 
+            @Parameter(description = "Nuevos datos de la transacción", required = true) 
             @Valid @RequestBody TransaccionRecurrenteDTO transaccionDTO) {
         log.info("Actualizando transacción recurrente con código: {}", codigo);
         return ResponseEntity.ok(
@@ -129,24 +161,35 @@ public class TransaccionRecurrenteController {
     }
 
     @DeleteMapping("/{codigo}")
-    @Operation(summary = "Eliminar una transacción recurrente")
+    @Operation(
+        summary = "Eliminar transacción recurrente",
+        description = "Elimina una transacción recurrente del sistema"
+    )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Transacción recurrente eliminada exitosamente"),
-        @ApiResponse(responseCode = "404", description = "Transacción recurrente no encontrada")
+        @ApiResponse(responseCode = "204", description = "Transacción eliminada exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Transacción recurrente no encontrada"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     public ResponseEntity<Void> eliminar(
-            @Parameter(description = "Código de la transacción recurrente") 
+            @Parameter(description = "Código de la transacción a eliminar", example = "TR-001", required = true) 
             @PathVariable String codigo) {
         log.info("Eliminando transacción recurrente con código: {}", codigo);
         this.service.eliminar(codigo);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/ejecutar/{diaPago}")
-    @Operation(summary = "Obtener transacciones recurrentes para ejecutar en un día específico")
-    @ApiResponse(responseCode = "200", description = "Lista de transacciones recurrentes obtenida exitosamente")
+    @Operation(
+        summary = "Obtener transacciones para ejecutar",
+        description = "Obtiene las transacciones recurrentes programadas para ejecutarse en un día específico del mes"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de transacciones obtenida exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Día de pago inválido"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerTransaccionesParaEjecutar(
-            @Parameter(description = "Día del mes para ejecutar las transacciones") 
+            @Parameter(description = "Día del mes (1-31)", example = "15", required = true) 
             @PathVariable Integer diaPago) {
         log.info("Obteniendo transacciones recurrentes para ejecutar en el día: {}", diaPago);
         return ResponseEntity.ok(
@@ -157,8 +200,14 @@ public class TransaccionRecurrenteController {
     }
 
     @GetMapping("/vencidas")
-    @Operation(summary = "Obtener transacciones recurrentes vencidas")
-    @ApiResponse(responseCode = "200", description = "Lista de transacciones recurrentes vencidas obtenida exitosamente")
+    @Operation(
+        summary = "Obtener transacciones vencidas",
+        description = "Obtiene todas las transacciones recurrentes que han vencido y requieren atención"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de transacciones vencidas obtenida exitosamente"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerTransaccionesVencidas() {
         log.info("Obteniendo transacciones recurrentes vencidas");
         return ResponseEntity.ok(
