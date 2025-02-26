@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/v1/transacciones-recurrentes")
+@RequestMapping("/v1/transaccionesrecurrentes")
 @Tag(name = "Transacciones Recurrentes", description = "API para gestionar transacciones recurrentes")
 public class TransaccionRecurrenteController {
     
