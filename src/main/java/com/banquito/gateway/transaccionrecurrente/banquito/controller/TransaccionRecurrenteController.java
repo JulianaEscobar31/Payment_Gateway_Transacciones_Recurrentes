@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.banquito.gateway.transaccionrecurrente.banquito.controller.dto.TransaccionRecurrenteDTO;
 import com.banquito.gateway.transaccionrecurrente.banquito.controller.mapper.TransaccionRecurrenteMapper;
-import com.banquito.gateway.transaccionrecurrente.banquito.exception.TransaccionRecurrenteInvalidaException;
-import com.banquito.gateway.transaccionrecurrente.banquito.exception.TransaccionRecurrenteNotFoundException;
 import com.banquito.gateway.transaccionrecurrente.banquito.service.TransaccionRecurrenteService;
 
 import io.swagger.v3.oas.annotations.Operation;
