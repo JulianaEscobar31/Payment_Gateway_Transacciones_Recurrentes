@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.banquito.gateway.transaccionrecurrente.banquito.controller.dto.TransaccionRecurrenteDTO;
 import com.banquito.gateway.transaccionrecurrente.banquito.controller.mapper.TransaccionRecurrenteMapper;
-import com.banquito.gateway.transaccionrecurrente.banquito.exception.TransaccionRecurrenteInvalidaException;
-import com.banquito.gateway.transaccionrecurrente.banquito.exception.TransaccionRecurrenteNotFoundException;
 import com.banquito.gateway.transaccionrecurrente.banquito.service.TransaccionRecurrenteService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,8 +27,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
+
 @RequestMapping("/v1/transacciones-recurrentes")
 @Tag(name = "Transacciones Recurrentes", description = "API para gestionar transacciones recurrentes de pagos automáticos")
+
 public class TransaccionRecurrenteController {
     
     private final Logger log = LoggerFactory.getLogger(TransaccionRecurrenteController.class);
