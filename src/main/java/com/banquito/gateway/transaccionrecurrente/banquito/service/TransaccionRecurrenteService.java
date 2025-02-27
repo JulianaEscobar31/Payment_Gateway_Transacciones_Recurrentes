@@ -55,27 +55,6 @@ public class TransaccionRecurrenteService {
     }
 
     @Transactional
-    public TransaccionRecurrente actualizar(String codigo, TransaccionRecurrente transaccion) {
-        log.info("Actualizando transacción recurrente con código: {}", codigo);
-        TransaccionRecurrente transaccionExistente = obtenerPorCodigo(codigo);
-        validarTransaccion(transaccion);
-        
-        transaccionExistente.setMonto(transaccion.getMonto());
-        transaccionExistente.setMarca(transaccion.getMarca());
-        transaccionExistente.setFechaInicio(transaccion.getFechaInicio());
-        transaccionExistente.setFechaFin(transaccion.getFechaFin());
-        transaccionExistente.setDiaMesPago(transaccion.getDiaMesPago());
-        transaccionExistente.setSwiftBanco(transaccion.getSwiftBanco());
-        transaccionExistente.setCuentaIban(transaccion.getCuentaIban());
-        transaccionExistente.setMoneda(transaccion.getMoneda());
-        transaccionExistente.setPais(transaccion.getPais());
-        transaccionExistente.setTarjeta(transaccion.getTarjeta());
-        transaccionExistente.setFechaCaducidad(transaccion.getFechaCaducidad());
-
-        return this.repository.save(transaccionExistente);
-    }
-
-    @Transactional
     public void eliminar(String codigo) {
         log.info("Eliminando transacción recurrente con código: {}", codigo);
         TransaccionRecurrente transaccion = obtenerPorCodigo(codigo);
@@ -93,6 +72,22 @@ public class TransaccionRecurrenteService {
     public List<TransaccionRecurrente> obtenerTransaccionesVencidas() {
         log.info("Buscando transacciones recurrentes vencidas");
         return this.repository.findByEstadoAndFechaFinLessThanEqual("ACT", LocalDate.now());
+    }
+
+    public List<TransaccionRecurrente> obtenerPorDiaMes(Integer diaMes) {
+        log.info("Buscando transacciones recurrentes para el día del mes: {}", diaMes);
+        if (diaMes < 1 || diaMes > 31) {
+            throw new TransaccionRecurrenteInvalidaException("El día del mes debe estar entre 1 y 31");
+        }
+        return this.repository.findByDiaMesPago(diaMes);
+    }
+    
+    public List<TransaccionRecurrente> obtenerPorEstado(String estado) {
+        log.info("Buscando transacciones recurrentes con estado: {}", estado);
+        if (estado == null || (!estado.equals("ACT") && !estado.equals("INA") && !estado.equals("ELI"))) {
+            throw new TransaccionRecurrenteInvalidaException("El estado debe ser ACT, INA o ELI");
+        }
+        return this.repository.findByEstado(estado);
     }
 
     private void validarTransaccion(TransaccionRecurrente transaccion) {
