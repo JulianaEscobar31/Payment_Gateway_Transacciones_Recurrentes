@@ -55,25 +55,12 @@ public class TransaccionRecurrenteService {
     }
 
     @Transactional
-    public void eliminar(String codigo) {
-        log.info("Eliminando transacción recurrente con código: {}", codigo);
-        TransaccionRecurrente transaccion = obtenerPorCodigo(codigo);
-        transaccion.setEstado("ELI");
-        this.repository.save(transaccion);
-    }
-
-    @Transactional
     public List<TransaccionRecurrente> obtenerTransaccionesParaEjecutar(Integer diaPago) {
         log.info("Buscando transacciones recurrentes para ejecutar en el día: {}", diaPago);
         return this.repository.findByEstadoAndDiaMesPagoAndFechaFinGreaterThanEqual("ACT", diaPago, LocalDate.now());
     }
 
-    @Transactional
-    public List<TransaccionRecurrente> obtenerTransaccionesVencidas() {
-        log.info("Buscando transacciones recurrentes vencidas");
-        return this.repository.findByEstadoAndFechaFinLessThanEqual("ACT", LocalDate.now());
-    }
-
+    
     public List<TransaccionRecurrente> obtenerPorDiaMes(Integer diaMes) {
         log.info("Buscando transacciones recurrentes para el día del mes: {}", diaMes);
         if (diaMes < 1 || diaMes > 31) {
@@ -84,7 +71,10 @@ public class TransaccionRecurrenteService {
     
     public List<TransaccionRecurrente> obtenerPorEstado(String estado) {
         log.info("Buscando transacciones recurrentes con estado: {}", estado);
-        if (estado == null || (!estado.equals("ACT") && !estado.equals("INA") && !estado.equals("ELI"))) {
+        if (estado == null || estado.isEmpty()) {
+            throw new TransaccionRecurrenteInvalidaException("El estado no puede estar vacío");
+        }
+        if (!estado.equals("ACT") && !estado.equals("INA") && !estado.equals("ELI")) {
             throw new TransaccionRecurrenteInvalidaException("El estado debe ser ACT, INA o ELI");
         }
         return this.repository.findByEstado(estado);
