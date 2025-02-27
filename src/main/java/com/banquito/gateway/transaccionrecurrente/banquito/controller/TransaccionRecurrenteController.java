@@ -138,28 +138,6 @@ public class TransaccionRecurrenteController {
         );
     }
 
-    @PutMapping("/{codigo}")
-    @Operation(
-        summary = "Actualizar transacción recurrente",
-        description = "Actualiza los datos de una transacción recurrente existente"
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Transacción actualizada exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Datos de actualización inválidos"),
-        @ApiResponse(responseCode = "404", description = "Transacción recurrente no encontrada"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    public ResponseEntity<TransaccionRecurrenteDTO> actualizar(
-            @Parameter(description = "Código de la transacción a actualizar", example = "TR-001", required = true) 
-            @PathVariable String codigo,
-            @Parameter(description = "Nuevos datos de la transacción", required = true) 
-            @Valid @RequestBody TransaccionRecurrenteDTO transaccionDTO) {
-        log.info("Actualizando transacción recurrente con código: {}", codigo);
-        return ResponseEntity.ok(
-            mapper.toDTO(this.service.actualizar(codigo, mapper.toModel(transaccionDTO)))
-        );
-    }
-
     @DeleteMapping("/{codigo}")
     @Operation(
         summary = "Eliminar transacción recurrente",
@@ -178,42 +156,4 @@ public class TransaccionRecurrenteController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/ejecutar/{diaPago}")
-    @Operation(
-        summary = "Obtener transacciones para ejecutar",
-        description = "Obtiene las transacciones recurrentes programadas para ejecutarse en un día específico del mes"
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Lista de transacciones obtenida exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Día de pago inválido"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerTransaccionesParaEjecutar(
-            @Parameter(description = "Día del mes (1-31)", example = "15", required = true) 
-            @PathVariable Integer diaPago) {
-        log.info("Obteniendo transacciones recurrentes para ejecutar en el día: {}", diaPago);
-        return ResponseEntity.ok(
-            this.service.obtenerTransaccionesParaEjecutar(diaPago).stream()
-                .map(mapper::toDTO)
-                .collect(Collectors.toList())
-        );
-    }
-
-    @GetMapping("/vencidas")
-    @Operation(
-        summary = "Obtener transacciones vencidas",
-        description = "Obtiene todas las transacciones recurrentes que han vencido y requieren atención"
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Lista de transacciones vencidas obtenida exitosamente"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerTransaccionesVencidas() {
-        log.info("Obteniendo transacciones recurrentes vencidas");
-        return ResponseEntity.ok(
-            this.service.obtenerTransaccionesVencidas().stream()
-                .map(mapper::toDTO)
-                .collect(Collectors.toList())
-        );
-    }
 } 
