@@ -27,7 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/v1/transaccionesrecurrentes/ejecucion")
-@Tag(name = "Ejecución de Transacciones Recurrentes", description = "API para ejecutar transacciones recurrentes programadas o manualmente")
+@Tag(name = "Ejecución de Transacciones Recurrentes", description = "API para ejecutar transacciones recurrentes programadas")
 public class EjecucionTransaccionRecurrenteController {
     
     private final Logger log = LoggerFactory.getLogger(EjecucionTransaccionRecurrenteController.class);
@@ -52,7 +52,7 @@ public class EjecucionTransaccionRecurrenteController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     public ResponseEntity<String> ejecutarProgramadas() {
-        log.info("Iniciando ejecución manual de todas las transacciones recurrentes programadas");
+        log.info("Iniciando ejecución de todas las transacciones recurrentes programadas");
         
         try {
             ejecucionService.ejecutarTransaccionesRecurrentes();
