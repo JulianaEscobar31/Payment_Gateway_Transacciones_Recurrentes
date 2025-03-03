@@ -1,11 +1,10 @@
 package com.banquito.gateway.transaccionrecurrente.banquito.client.dto;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import org.springframework.cglib.core.Local;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,19 +13,30 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TransaccionSimpleDTO {
     
-    private String codTransaccion;
-    private String tipo;
     private String marca;
     private BigDecimal monto;
-    private String codUnicoTransaccion;
-    private LocalDateTime fecha;
-    private String estado;
     private String moneda;
     private String pais;
-    private BigDecimal tarjeta;
-    private LocalDateTime fechaCaducidad;
-    private String transaccionEncriptada;
-    private String swiftBanco;
-    private String cuentaIban;
+    
+    @JsonProperty("numeroTarjeta")
+    private String numeroTarjeta;
+    
+    @JsonProperty("fechaExpiracion")
+    private String fechaExpiracion;
+    
+    @JsonProperty("swift_banco")
+    private String swift_banco;
+    
+    @JsonProperty("cuenta_iban")
+    private String cuenta_iban;
+    
+    private Integer cvv;
+    private Integer frecuenciaDias;
+    
+    private String codTransaccion;
+    private String tipo;
+    private String codigoUnicoTransaccion;
+    private LocalDateTime fecha;
+    private String estado;
     private Boolean diferido;
 } 

@@ -1,6 +1,5 @@
 package com.banquito.gateway.transaccionrecurrente.banquito.client.mapper;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,20 +21,18 @@ public class TransaccionSimpleMapper {
         dto.setTipo("REC"); 
         dto.setMarca(transaccion.getMarca());
         dto.setMonto(transaccion.getMonto());
-        dto.setCodUnicoTransaccion(transaccion.getCodigo());
+        dto.setCodigoUnicoTransaccion(UUID.randomUUID().toString());
         dto.setFecha(LocalDateTime.now());
-        dto.setEstado("PEN"); 
+        dto.setEstado("PEN"); // Estado inicial: pendiente
         dto.setMoneda(transaccion.getMoneda());
         dto.setPais(transaccion.getPais());
-        dto.setTarjeta(new BigDecimal(transaccion.getTarjeta()));
-        dto.setFechaCaducidad(LocalDateTime.of(
-                transaccion.getFechaCaducidad().getYear(),
-                transaccion.getFechaCaducidad().getMonth(),
-                transaccion.getFechaCaducidad().getDayOfMonth(),
-                0, 0));
+        dto.setTarjeta(transaccion.getTarjeta());
+        dto.setFechaCaducidad(transaccion.getFechaCaducidad());
         dto.setSwiftBanco(transaccion.getSwiftBanco());
         dto.setCuentaIban(transaccion.getCuentaIban());
         dto.setDiferido(false);
+        
+        dto.setTransaccionEncriptada("REC:" + transaccion.getCodigo() + ":" + dto.getCodigoUnicoTransaccion());
         
         return dto;
     }

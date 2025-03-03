@@ -5,14 +5,17 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.banquito.gateway.transaccionrecurrente.banquito.controller.dto.TransaccionRecurrenteDTO;
@@ -44,22 +47,56 @@ public class TransaccionRecurrenteController {
 
     @GetMapping
     @Operation(
-        summary = "Listar todas las transacciones recurrentes",
-        description = "Obtiene un listado completo de todas las transacciones recurrentes registradas en el sistema, independientemente de su estado"
+        summary = "Listar transacciones recurrentes con paginación, ordenamiento y filtros",
+        description = "Obtiene un listado de transacciones recurrentes con opciones de paginación, ordenamiento y filtrado"
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Lista de transacciones recurrentes obtenida exitosamente", 
                     content = @Content(mediaType = "application/json", 
                     schema = @Schema(implementation = TransaccionRecurrenteDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Parámetros de consulta inválidos"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerTodas() {
-        log.info("Obteniendo todas las transacciones recurrentes");
-        return ResponseEntity.ok(
-            this.service.obtenerTodas().stream()
-                .map(mapper::toDTO)
-                .collect(Collectors.toList())
-        );
+    public ResponseEntity<Page<TransaccionRecurrenteDTO>> obtenerTodas(
+            @Parameter(description = "Número de página (comenzando desde 0)", example = "0") 
+            @RequestParam(defaultValue = "0") int page,
+            
+            @Parameter(description = "Tamaño de la página", example = "10") 
+            @RequestParam(defaultValue = "10") int size,
+            
+            @Parameter(description = "Campo para ordenar (monto, diaMesPago, fechaInicio, etc)", example = "monto") 
+            @RequestParam(required = false) String sort,
+            
+            @Parameter(description = "Dirección del ordenamiento (ASC o DESC)", example = "DESC") 
+            @RequestParam(defaultValue = "ASC") String direction,
+            
+            @Parameter(description = "Filtrar por estado (ACT, INA, ELI)", example = "ACT") 
+            @RequestParam(required = false) String estado,
+            
+            @Parameter(description = "Filtrar por día del mes de pago", example = "15") 
+            @RequestParam(required = false) Integer diaMesPago,
+            
+            @Parameter(description = "Filtrar por país de origen", example = "EC") 
+            @RequestParam(required = false) String pais,
+            
+            @Parameter(description = "Incluir transacciones eliminadas", example = "false") 
+            @RequestParam(defaultValue = "false") boolean incluirEliminadas) {
+        
+        log.info("Obteniendo transacciones recurrentes paginadas: página={}, tamaño={}, ordenamiento={}, dirección={}", 
+                 page, size, sort, direction);
+        
+        Pageable pageable;
+        if (sort != null && !sort.isEmpty()) {
+            Sort.Direction sortDirection = "DESC".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
+            pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+        } else {
+            pageable = PageRequest.of(page, size);
+        }
+        
+        Page<TransaccionRecurrenteDTO> transaccionesDTO = this.service.buscarTransacciones(estado, diaMesPago, pais, incluirEliminadas, pageable)
+                .map(mapper::toDTO);
+        
+        return ResponseEntity.ok(transaccionesDTO);
     }
 
     @GetMapping("/{codigo}")
@@ -79,29 +116,6 @@ public class TransaccionRecurrenteController {
             @PathVariable String codigo) {
         log.info("Obteniendo transacción recurrente con código: {}", codigo);
         return ResponseEntity.ok(mapper.toDTO(this.service.obtenerPorCodigo(codigo)));
-    }
-
-    @GetMapping("/tarjeta/{tarjeta}")
-    @Operation(
-        summary = "Buscar transacciones por número de tarjeta",
-        description = "Obtiene todas las transacciones recurrentes activas asociadas a una tarjeta específica"
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Lista de transacciones obtenida exitosamente", 
-                    content = @Content(mediaType = "application/json", 
-                    schema = @Schema(implementation = TransaccionRecurrenteDTO.class))),
-        @ApiResponse(responseCode = "400", description = "Número de tarjeta inválido"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerPorTarjeta(
-            @Parameter(description = "Número de tarjeta (16 dígitos)", example = "4532123456789012", required = true) 
-            @PathVariable Long tarjeta) {
-        log.info("Obteniendo transacciones recurrentes para la tarjeta: {}", tarjeta);
-        return ResponseEntity.ok(
-            this.service.obtenerPorTarjeta(tarjeta).stream()
-                .map(mapper::toDTO)
-                .collect(Collectors.toList())
-        );
     }
 
     @GetMapping("/cuenta/{cuentaIban}")
@@ -176,13 +190,13 @@ public class TransaccionRecurrenteController {
     @PostMapping
     @Operation(
         summary = "Crear nueva transacción recurrente",
-        description = "Registra una nueva transacción recurrente en el sistema para pagos automáticos periódicos"
+        description = "Registra una nueva transacción recurrente en el sistema para pagos automáticos periódicos. El monto máximo permitido es de 100000 dólares."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Transacción recurrente creada exitosamente", 
                     content = @Content(mediaType = "application/json", 
                     schema = @Schema(implementation = TransaccionRecurrenteDTO.class))),
-        @ApiResponse(responseCode = "400", description = "Datos de transacción inválidos"),
+        @ApiResponse(responseCode = "400", description = "Datos de transacción inválidos o monto superior al límite permitido"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     public ResponseEntity<TransaccionRecurrenteDTO> crear(
