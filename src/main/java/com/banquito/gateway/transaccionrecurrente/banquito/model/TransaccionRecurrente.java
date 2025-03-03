@@ -60,6 +60,12 @@ public class TransaccionRecurrente {
     @Column(name = "FECHA_CADUCIDAD")
     private LocalDate fechaCaducidad;
 
+    @Column(name = "CVV")
+    private String cvv;
+
+    @Column(name = "FRECUENCIA_DIAS")
+    private Integer frecuenciaDias;
+
     public TransaccionRecurrente(String codigo) {
         this.codigo = codigo;
     }

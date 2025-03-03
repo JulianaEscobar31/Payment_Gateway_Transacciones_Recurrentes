@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,15 +31,19 @@ public class TransaccionRecurrenteService {
         return this.repository.findAll();
     }
 
+    public Page<TransaccionRecurrente> buscarTransacciones(String estado, Integer diaMesPago, String pais, boolean incluirEliminadas, Pageable pageable) {
+        log.info("Buscando transacciones con filtros: estado={}, diaMesPago={}, pais={}, incluirEliminadas={}", 
+                estado, diaMesPago, pais, incluirEliminadas);
+                
+        validarParametrosFiltro(estado);
+        
+        return this.repository.buscarConFiltros(estado, diaMesPago, pais, incluirEliminadas, pageable);
+    }
+
     public TransaccionRecurrente obtenerPorCodigo(String codigo) {
         log.info("Buscando transacción recurrente con código: {}", codigo);
         return this.repository.findById(codigo)
                 .orElseThrow(() -> new TransaccionRecurrenteNotFoundException(codigo));
-    }
-
-    public List<TransaccionRecurrente> obtenerPorTarjeta(Long tarjeta) {
-        log.info("Buscando transacciones recurrentes para la tarjeta: {}", tarjeta);
-        return this.repository.findByTarjetaAndEstado(tarjeta, "ACT");
     }
 
     public List<TransaccionRecurrente> obtenerPorCuentaIban(String cuentaIban) {
@@ -60,6 +66,13 @@ public class TransaccionRecurrenteService {
         return this.repository.findByEstadoAndDiaMesPagoAndFechaFinGreaterThanEqual("ACT", diaPago, LocalDate.now());
     }
 
+    @Transactional
+    public TransaccionRecurrente actualizarDespuesDeEjecucion(String codigo) {
+        log.info("Actualizando transacción recurrente después de la ejecución: {}", codigo);
+        TransaccionRecurrente transaccion = obtenerPorCodigo(codigo);
+        // No necesitamos actualizar nada adicional en este caso, solo registrar que se ejecutó correctamente
+        return transaccion;
+    }
     
     public List<TransaccionRecurrente> obtenerPorDiaMes(Integer diaMes) {
         log.info("Buscando transacciones recurrentes para el día del mes: {}", diaMes);
@@ -92,6 +105,19 @@ public class TransaccionRecurrenteService {
         }
         if (transaccion.getFechaCaducidad() != null && transaccion.getFechaCaducidad().isBefore(LocalDate.now())) {
             throw new TransaccionRecurrenteInvalidaException("La fecha de caducidad debe ser futura");
+        }
+        if (transaccion.getMonto() == null) {
+            throw new TransaccionRecurrenteInvalidaException("El monto es requerido");
+        }
+        if (transaccion.getMonto().compareTo(new java.math.BigDecimal("100000.00")) > 0) {
+            throw new TransaccionRecurrenteInvalidaException("El monto máximo permitido es de 100000 dólares");
+        }
+    }
+
+    private void validarParametrosFiltro(String estado) {
+        if (estado != null && !estado.isEmpty() && 
+            !estado.equals("ACT") && !estado.equals("INA") && !estado.equals("ELI")) {
+            throw new TransaccionRecurrenteInvalidaException("El estado debe ser ACT, INA o ELI");
         }
     }
 } 

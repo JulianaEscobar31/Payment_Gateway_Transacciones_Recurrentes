@@ -22,7 +22,7 @@ public class TransaccionRecurrenteDTO {
 
     @NotNull(message = "El monto es requerido")
     @DecimalMin(value = "0.01", message = "El monto debe ser mayor a 0")
-    @DecimalMax(value = "999999999.99", message = "El monto excede el límite permitido")
+    @DecimalMax(value = "100000.00", message = "El monto máximo permitido es de 100000 dólares")
     private BigDecimal monto;
 
     @NotBlank(message = "La marca es requerida")
@@ -64,5 +64,11 @@ public class TransaccionRecurrenteDTO {
     @NotNull(message = "La fecha de caducidad es requerida")
     @Future(message = "La fecha de caducidad debe ser futura")
     private LocalDate fechaCaducidad;
+
+    @Size(min = 3, max = 4, message = "El CVV debe tener entre 3 y 4 caracteres")
+    private String cvv;
+    
+    @DecimalMin(value = "1", message = "La frecuencia debe ser mayor a 0")
+    private Integer frecuenciaDias;
 
 } 

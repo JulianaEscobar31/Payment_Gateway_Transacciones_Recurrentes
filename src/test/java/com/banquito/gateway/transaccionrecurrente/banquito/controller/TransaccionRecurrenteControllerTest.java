@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -161,26 +160,6 @@ public class TransaccionRecurrenteControllerTest {
         mockMvc.perform(get("/v1/transacciones-recurrentes/TR99999999")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void testObtenerPorTarjeta() throws Exception {
-        when(service.obtenerPorTarjeta(anyLong())).thenReturn(transaccionesList);
-        when(mapper.toDTO(any(TransaccionRecurrente.class))).thenAnswer(invocation -> {
-            TransaccionRecurrente tr = invocation.getArgument(0);
-            if ("TR12345678".equals(tr.getCodigo())) {
-                return transaccionRecurrenteDTO;
-            } else {
-                return transaccionesDTOList.get(1);
-            }
-        });
-
-        mockMvc.perform(get("/v1/transacciones-recurrentes/tarjeta/4532123456789012")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].codigo", is("TR12345678")))
-                .andExpect(jsonPath("$[1].codigo", is("TR87654321")));
     }
 
     @Test

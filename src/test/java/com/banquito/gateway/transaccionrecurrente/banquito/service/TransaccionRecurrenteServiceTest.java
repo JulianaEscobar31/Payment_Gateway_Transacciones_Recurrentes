@@ -113,16 +113,6 @@ public class TransaccionRecurrenteServiceTest {
     }
 
     @Test
-    public void testObtenerPorTarjeta() {
-        when(repository.findByTarjetaAndEstado(anyLong(), anyString())).thenReturn(transaccionesList);
-
-        List<TransaccionRecurrente> resultado = service.obtenerPorTarjeta(4532123456789012L);
-
-        verify(repository, times(1)).findByTarjetaAndEstado(4532123456789012L, "ACT");
-        assertEquals(2, resultado.size());
-    }
-
-    @Test
     public void testObtenerPorCuentaIban() {
         when(repository.findByCuentaIbanAndEstado(anyString(), anyString())).thenReturn(transaccionesList);
 
