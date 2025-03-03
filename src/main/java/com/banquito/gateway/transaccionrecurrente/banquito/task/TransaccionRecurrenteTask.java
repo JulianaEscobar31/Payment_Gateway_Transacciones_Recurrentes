@@ -26,6 +26,10 @@ public class TransaccionRecurrenteTask {
     private final TransaccionSimpleClient transaccionSimpleClient;
     
     private final Map<String, LocalDateTime> ultimaEjecucion = new ConcurrentHashMap<>();
+    private final Map<String, LocalDateTime> ultimoRechazo = new ConcurrentHashMap<>();
+    private final Map<String, Integer> contadorReintentos = new ConcurrentHashMap<>();
+    private static final int MAX_REINTENTOS = 3;
+    private static final int MINUTOS_ESPERA_REINTENTO = 1;
 
     public TransaccionRecurrenteTask(TransaccionRecurrenteService service, TransaccionSimpleClient transaccionSimpleClient) {
         this.service = service;
@@ -44,24 +48,36 @@ public class TransaccionRecurrenteTask {
 
         for (TransaccionRecurrente transaccion : transaccionesActivas) {
             try {                
-                if (debeEjecutarse(transaccion)) {
+                if (debeEjecutarse(transaccion) || debeReintentarse(transaccion)) {
                     TransaccionSimpleDTO transaccionSimpleDTO = mapearATransaccionSimple(transaccion);
 
-                    log.info("Enviando transacción {} al servicio externo", transaccion.getCodigo());
+                    boolean esReintento = ultimoRechazo.containsKey(transaccion.getCodigo());
+                    if (esReintento) {
+                        log.info("Reintentando transacción {} (intento {})", 
+                                transaccion.getCodigo(), 
+                                contadorReintentos.get(transaccion.getCodigo()));
+                    } else {
+                        log.info("Enviando transacción {} al servicio externo", transaccion.getCodigo());
+                    }
+
                     ResponseEntity<TransaccionSimpleDTO> respuesta = transaccionSimpleClient.ejecutarTransaccion(transaccionSimpleDTO);
 
                     if (respuesta.getStatusCode().is2xxSuccessful()) {
                         log.info("Transacción {} enviada exitosamente", transaccion.getCodigo());                                
                         service.actualizarDespuesDeEjecucion(transaccion.getCodigo());
                         transaccionesEnviadas++;
-                        // Actualizar la última ejecución solo después de una ejecución exitosa
                         ultimaEjecucion.put(transaccion.getCodigo(), LocalDateTime.now());
+                        // Limpiar datos de reintento si fue exitoso
+                        ultimoRechazo.remove(transaccion.getCodigo());
+                        contadorReintentos.remove(transaccion.getCodigo());
                     } else {
+                        manejarTransaccionRechazada(transaccion);
                         log.error("Error al enviar transacción {}: Código de respuesta {}", 
                                  transaccion.getCodigo(), respuesta.getStatusCode().value());
                     }
                 }
             } catch (Exception e) {
+                manejarTransaccionRechazada(transaccion);
                 log.error("Error al procesar transacción {}: {}", transaccion.getCodigo(), e.getMessage());
             }
         }
@@ -73,6 +89,45 @@ public class TransaccionRecurrenteTask {
             log.info("Finalizada verificación de transacciones recurrentes: {}. No se enviaron transacciones al microservicio externo", 
                      LocalDateTime.now());
         }
+    }
+
+    private void manejarTransaccionRechazada(TransaccionRecurrente transaccion) {
+        String codigo = transaccion.getCodigo();
+        LocalDateTime ahora = LocalDateTime.now();
+        
+        // Inicializar o incrementar contador de reintentos
+        int reintentos = contadorReintentos.getOrDefault(codigo, 0) + 1;
+        contadorReintentos.put(codigo, reintentos);
+        
+        if (reintentos <= MAX_REINTENTOS) {
+            ultimoRechazo.put(codigo, ahora);
+            log.info("Programando reintento {} para la transacción {} en {} minuto(s)", 
+                    reintentos, codigo, MINUTOS_ESPERA_REINTENTO);
+        } else {
+            log.error("La transacción {} ha excedido el número máximo de reintentos ({}). Cambiando estado a CANCELADO", 
+                    codigo, MAX_REINTENTOS);
+            try {
+                service.actualizarEstado(codigo, "CAN");
+                log.info("Estado de la transacción {} actualizado a CANCELADO", codigo);
+            } catch (Exception e) {
+                log.error("Error al actualizar estado de la transacción {} a CANCELADO: {}", 
+                        codigo, e.getMessage());
+            }
+            ultimoRechazo.remove(codigo);
+            contadorReintentos.remove(codigo);
+        }
+    }
+
+    private boolean debeReintentarse(TransaccionRecurrente transaccion) {
+        LocalDateTime ultimoRechazoTransaccion = ultimoRechazo.get(transaccion.getCodigo());
+        if (ultimoRechazoTransaccion == null) {
+            return false;
+        }
+
+        LocalDateTime ahora = LocalDateTime.now();
+        long minutosDesdeRechazo = ChronoUnit.MINUTES.between(ultimoRechazoTransaccion, ahora);
+        
+        return minutosDesdeRechazo >= MINUTOS_ESPERA_REINTENTO;
     }
     
     private boolean debeEjecutarse(TransaccionRecurrente transaccion) {
