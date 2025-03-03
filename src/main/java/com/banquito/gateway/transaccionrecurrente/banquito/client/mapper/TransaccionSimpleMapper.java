@@ -23,16 +23,33 @@ public class TransaccionSimpleMapper {
         dto.setMonto(transaccion.getMonto());
         dto.setCodigoUnicoTransaccion(UUID.randomUUID().toString());
         dto.setFecha(LocalDateTime.now());
-        dto.setEstado("PEN"); // Estado inicial: pendiente
+        dto.setEstado("PEN"); 
         dto.setMoneda(transaccion.getMoneda());
         dto.setPais(transaccion.getPais());
-        dto.setTarjeta(transaccion.getTarjeta());
-        dto.setFechaCaducidad(transaccion.getFechaCaducidad());
-        dto.setSwiftBanco(transaccion.getSwiftBanco());
-        dto.setCuentaIban(transaccion.getCuentaIban());
-        dto.setDiferido(false);
         
-        dto.setTransaccionEncriptada("REC:" + transaccion.getCodigo() + ":" + dto.getCodigoUnicoTransaccion());
+        if (transaccion.getTarjeta() != null) {
+            dto.setNumeroTarjeta(transaccion.getTarjeta().toString());
+        }
+        
+        if (transaccion.getFechaCaducidad() != null) {
+            String mes = String.format("%02d", transaccion.getFechaCaducidad().getMonthValue());
+            String anio = String.valueOf(transaccion.getFechaCaducidad().getYear() % 100);
+            dto.setFechaExpiracion(mes + "/" + anio);
+        }
+        
+        dto.setSwift_banco(transaccion.getSwiftBanco());
+        dto.setCuenta_iban(transaccion.getCuentaIban());
+        
+        if (transaccion.getCvv() != null && !transaccion.getCvv().isEmpty()) {
+            try {
+                dto.setCvv(Integer.parseInt(transaccion.getCvv()));
+            } catch (NumberFormatException e) {
+                dto.setCvv(123);
+            }
+        }
+        
+        dto.setFrecuenciaDias(transaccion.getFrecuenciaDias());
+        dto.setDiferido(false);
         
         return dto;
     }

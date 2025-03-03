@@ -1,7 +1,6 @@
 package com.banquito.gateway.transaccionrecurrente.banquito.client.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,13 +29,27 @@ public class TransaccionSimpleDTO {
     @JsonProperty("cuenta_iban")
     private String cuenta_iban;
     
+    @JsonProperty("cvv")
     private Integer cvv;
+    
+    @JsonProperty("frecuenciaDias")
     private Integer frecuenciaDias;
     
+    @JsonProperty("codTransaccion")
     private String codTransaccion;
+    
+    @JsonProperty("tipo")
     private String tipo;
+    
+    @JsonProperty("codigoUnicoTransaccion")
     private String codigoUnicoTransaccion;
+    
+    @JsonProperty("fecha")
     private LocalDateTime fecha;
+    
+    @JsonProperty("estado")
     private String estado;
+    
+    @JsonProperty("diferido")
     private Boolean diferido;
 } 
