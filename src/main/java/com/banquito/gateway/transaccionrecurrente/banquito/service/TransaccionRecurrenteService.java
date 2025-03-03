@@ -93,6 +93,14 @@ public class TransaccionRecurrenteService {
         return this.repository.findByEstado(estado);
     }
 
+    @Transactional
+    public TransaccionRecurrente actualizarEstado(String codigo, String estado) {
+        log.info("Actualizando estado de la transacción {} a {}", codigo, estado);
+        TransaccionRecurrente transaccion = obtenerPorCodigo(codigo);
+        transaccion.setEstado(estado);
+        return this.repository.save(transaccion);
+    }
+
     private void validarTransaccion(TransaccionRecurrente transaccion) {
         if (transaccion.getFechaInicio() == null) {
             throw new TransaccionRecurrenteInvalidaException("La fecha de inicio es requerida");
