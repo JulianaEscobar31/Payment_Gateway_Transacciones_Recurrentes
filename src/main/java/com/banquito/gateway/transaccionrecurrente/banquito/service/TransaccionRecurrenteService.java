@@ -48,7 +48,7 @@ public class TransaccionRecurrenteService {
 
     public List<TransaccionRecurrente> obtenerPorCuentaIban(String cuentaIban) {
         log.info("Buscando transacciones recurrentes para la cuenta IBAN: {}", cuentaIban);
-        return this.repository.findByCuentaIbanAndEstado(cuentaIban, "ACT");
+        return this.repository.findByCuentaIban(cuentaIban);
     }
 
     @Transactional
@@ -70,7 +70,6 @@ public class TransaccionRecurrenteService {
     public TransaccionRecurrente actualizarDespuesDeEjecucion(String codigo) {
         log.info("Actualizando transacción recurrente después de la ejecución: {}", codigo);
         TransaccionRecurrente transaccion = obtenerPorCodigo(codigo);
-        // No necesitamos actualizar nada adicional en este caso, solo registrar que se ejecutó correctamente
         return transaccion;
     }
     
@@ -87,8 +86,8 @@ public class TransaccionRecurrenteService {
         if (estado == null || estado.isEmpty()) {
             throw new TransaccionRecurrenteInvalidaException("El estado no puede estar vacío");
         }
-        if (!estado.equals("ACT") && !estado.equals("INA") && !estado.equals("ELI")) {
-            throw new TransaccionRecurrenteInvalidaException("El estado debe ser ACT, INA o ELI");
+        if (!estado.equals("ACT") && !estado.equals("CAN") && !estado.equals("FIN")) {
+            throw new TransaccionRecurrenteInvalidaException("El estado debe ser ACT, CAN o FIN");
         }
         return this.repository.findByEstado(estado);
     }
@@ -124,8 +123,8 @@ public class TransaccionRecurrenteService {
 
     private void validarParametrosFiltro(String estado) {
         if (estado != null && !estado.isEmpty() && 
-            !estado.equals("ACT") && !estado.equals("INA") && !estado.equals("ELI")) {
-            throw new TransaccionRecurrenteInvalidaException("El estado debe ser ACT, INA o ELI");
+            !estado.equals("ACT") && !estado.equals("CAN") && !estado.equals("FIN")) {
+            throw new TransaccionRecurrenteInvalidaException("El estado debe ser ACT, CAN o FIN");
         }
     }
 } 

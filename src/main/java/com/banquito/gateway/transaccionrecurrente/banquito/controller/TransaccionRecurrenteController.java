@@ -167,17 +167,17 @@ public class TransaccionRecurrenteController {
     @GetMapping("/estado/{estado}")
     @Operation(
         summary = "Buscar transacciones por estado",
-        description = "Obtiene todas las transacciones recurrentes que se encuentran en un estado específico (ACT: Activas, INA: Inactivas, ELI: Eliminadas)"
+        description = "Obtiene todas las transacciones recurrentes que se encuentran en un estado específico (ACT: Activas, CAN: Canceladas, FIN: Finalizadas)"
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Lista de transacciones obtenida exitosamente", 
                     content = @Content(mediaType = "application/json", 
                     schema = @Schema(implementation = TransaccionRecurrenteDTO.class))),
-        @ApiResponse(responseCode = "400", description = "Estado inválido (debe ser ACT, INA o ELI)"),
+        @ApiResponse(responseCode = "400", description = "Estado inválido (debe ser ACT, CAN o FIN)"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     public ResponseEntity<List<TransaccionRecurrenteDTO>> obtenerPorEstado(
-            @Parameter(description = "Estado de la transacción (ACT, INA, ELI)", example = "ACT", required = true) 
+            @Parameter(description = "Estado de la transacción (ACT: Activo, CAN: Cancelado, FIN: Finalizado)", example = "ACT", required = true) 
             @PathVariable String estado) {
         log.info("Obteniendo transacciones recurrentes con estado: {}", estado);
         return ResponseEntity.ok(

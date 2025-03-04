@@ -21,6 +21,8 @@ public interface TransaccionRecurrenteRepository extends JpaRepository<Transacci
     
     List<TransaccionRecurrente> findByCuentaIbanAndEstado(String cuentaIban, String estado);
     
+    List<TransaccionRecurrente> findByCuentaIban(String cuentaIban);
+    
     List<TransaccionRecurrente> findByDiaMesPago(Integer diaMesPago);
     
     List<TransaccionRecurrente> findByEstado(String estado);
