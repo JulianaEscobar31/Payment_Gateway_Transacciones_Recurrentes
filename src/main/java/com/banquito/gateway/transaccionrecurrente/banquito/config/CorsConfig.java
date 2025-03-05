@@ -14,13 +14,15 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
               
-        config.addAllowedHeader("*");
-
-        config.addAllowedMethod("*");
-
-        config.addAllowedOrigin("*");
-
         config.setAllowCredentials(true);
+        config.addAllowedOrigin("https://front-gateway-seven.vercel.app");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("GET");
+        config.addAllowedMethod("POST");
+        config.addAllowedMethod("PUT");
+        config.addAllowedMethod("PATCH");
+        config.addAllowedMethod("DELETE");
+        config.addAllowedMethod("OPTIONS");
         
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
