@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.banquito.gateway.transaccionrecurrente.banquito.client.dto.TransaccionSimpleDTO;
 
-@FeignClient(name = "transaccion-simple", url ="https://94ca-2800-370-d3-b1b0-2d0c-38fe-d1a7-d741.ngrok-free.app")
+@FeignClient(name = "transaccion-simple", url ="http://transaccionsimple-alb-705840120.us-east-2.elb.amazonaws.com/swagger-ui/index.html")
 public interface TransaccionSimpleClient {
      
     @PostMapping("/api/v1/transacciones/recurrentes")
